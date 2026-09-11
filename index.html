@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PaniTech | Learning Platform</title>
+<style>
+:root{--bg:#07102b;--card:#0d1838;--card2:#101f45;--line:#24345d;--text:#f4f7ff;--muted:#aeb9d8;--accent:#16c7bb;--accent2:#0b8e99}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#050b20,#081433);color:var(--text);font-family:Arial,sans-serif}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.hidden{display:none!important}.app{min-height:100vh}.top{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#07102bf2;position:sticky;top:0;z-index:5}
+.brand{font-weight:800;font-size:20px;color:#fff}.brand span{color:var(--accent)}.top small{color:var(--muted)}
+.wrap{max-width:1100px;margin:auto;padding:25px 16px}.hero{padding:35px 0}.hero h1{font-size:38px;margin:0 0 8px}.hero p{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 12px 35px #0004}.role{min-height:180px}.role h2{margin-top:0}.muted{color:var(--muted);font-size:13px}
+.btn{border:0;border-radius:8px;padding:10px 15px;background:var(--accent);color:#03121a;font-weight:700}.btn.secondary{background:#17264b;color:#fff;border:1px solid var(--line)}.btn.danger{background:#8d3048;color:#fff}.btn.small{padding:7px 10px;font-size:12px}
+input,textarea,select{width:100%;background:#060d25;color:#fff;border:1px solid var(--line);border-radius:8px;padding:11px;margin-top:6px;outline:0}textarea{min-height:140px;resize:vertical}
+label{display:block;margin:14px 0 0;font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.nav button.active{background:var(--accent);color:#03121a}.section-title{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px}
+.lesson{border:1px solid var(--line);border-radius:11px;padding:14px;background:#0a1430;margin-bottom:10px}.lesson h3{margin:0 0 7px}.lesson p{color:#c8d1e8;white-space:pre-wrap;line-height:1.5;font-size:13px}.lesson img{max-width:100%;max-height:260px;border-radius:8px;display:block;margin:10px auto}
+.quiz-q{padding:14px;border:1px solid var(--line);border-radius:10px;margin:10px 0;background:#091532}.option{display:block;margin:7px 0;padding:9px;border-radius:7px;background:#101e41}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:#9feee9}
+.notice{padding:11px;border-radius:8px;background:#0a3f3c;color:#9ffff7;margin:10px 0;font-size:13px}.error{background:#4a1c2b;color:#ffc0ce}
+.login{max-width:430px;margin:70px auto}.center{text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><div class="brand">Pani<span>Tech</span></div><small id="userLabel"></small></header>
+<main id="app"></main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://icetvpmoxawekchapbxn.supabase.co";
+const SUPABASE_KEY="sb_publishable_vplACj6OlIsRlOMksXEJFw_RSngY9Iq";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let quizItems=[];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+function note(t,e=false){let x=$("message");if(x){x.textContent=t;x.className=e?'error':'success';x.style.display='block'}}
+function home(){document.querySelector('.container').innerHTML=`<div class="card"><h2>PaniTech</h2><p class="small">Piliin ang gagamit ng platform.</p><div class="actions"><button class="publish" onclick="teacherLogin()">Guro</button><button class="cancel" onclick="studentLogin()">Mag-aaral</button></div></div>`}
+function teacherLogin(){document.querySelector('.container').innerHTML=`<div class="card"><h2>Guro Login</h2><label>Pangalan</label><input id="name"><div class="actions"><button class="publish" onclick="enterTeacher()">Pumasok</button><button class="cancel" onclick="home()">Bumalik</button></div></div>`}
+function studentLogin(){document.querySelector('.container').innerHTML=`<div class="card"><h2>Mag-aaral Login</h2><label>Pangalan</label><input id="name"><label>Join Code</label><input id="code" placeholder="FIL01"><div class="actions"><button class="publish" onclick="enterStudent()">Pumasok</button><button class="cancel" onclick="home()">Bumalik</button></div></div>`}
+function enterTeacher(){let n=$("name").value.trim();if(!n)return alert('Ilagay ang pangalan.');sessionStorage.name=n;teacher()}
+function enterStudent(){let n=$("name").value.trim(),c=$("code").value.trim().toUpperCase();if(!n||!c)return alert('Punan ang pangalan at join code.');sessionStorage.name=n;sessionStorage.code=c;student()}
+function addLesson(){quizItems=[];document.querySelector('.container').innerHTML=`<div class="card"><h2>Bumuo ng Aralin</h2><label>Pamagat</label><input id="title"><label>Nilalaman ng Aralin</label><textarea id="content"></textarea><label>Cover Photo (Optional, max 3MB)</label><input id="photo" type="file" accept="image/*"><label>Video URL (Optional)</label><input id="video"><label>Section / Join Code</label><input id="code" value="FIL01"><div class="quiz"><div class="row"><b>Interactive Quiz Modules</b><button class="add" onclick="addQuiz()">+ Magdagdag</button></div><div id="quizList"></div></div><div id="message"></div><div class="actions"><button class="publish" onclick="publishLesson()">I-post ang Aralin</button><button class="cancel" onclick="teacher()">Kanselahin</button></div></div>`;renderQuiz()}
+function addQuiz(){quizItems.push({q:'',a:'',b:'',c:'',d:'',ans:'A'});renderQuiz()}
+function renderQuiz(){let x=$("quizList");x.innerHTML=quizItems.length?quizItems.map((q,i)=>`<div class="quiz-item"><b>Tanong ${i+1}</b><button class="remove" onclick="quizItems.splice(${i},1);renderQuiz()">Alisin</button><label>Tanong</label><input value="${esc(q.q)}" oninput="quizItems[${i}].q=this.value"><label>A</label><input value="${esc(q.a)}" oninput="quizItems[${i}].a=this.value"><label>B</label><input value="${esc(q.b)}" oninput="quizItems[${i}].b=this.value"><label>C</label><input value="${esc(q.c)}" oninput="quizItems[${i}].c=this.value"><label>D</label><input value="${esc(q.d)}" oninput="quizItems[${i}].d=this.value"><label>Tamang sagot</label><select onchange="quizItems[${i}].ans=this.value"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>`).join(''):'<div class="small">Wala pang interactive module.</div>'}
+function image64(file){return new Promise((res,rej)=>{if(!file)return res(null);if(file.size>3*1024*1024)return rej(new Error('Maximum 3MB ang larawan.'));let r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
+async function publishLesson(){try{let title=$("title").value.trim(),content=$("content").value.trim(),code=$("code").value.trim().toUpperCase();if(!title||!content||!code)return note('Punan ang pamagat, nilalaman, at join code.',true);if(quizItems.some(q=>!q.q||!q.a||!q.b||!q.c||!q.d))return note('Punan ang lahat ng quiz fields.',true);let c=await sb.from('classrooms').select('id').eq('join_code',code).maybeSingle();if(c.error)throw c.error;let cid=c.data?.id;if(!cid){let z=await sb.from('classrooms').insert({name:code,join_code:code,teacher_name:sessionStorage.name}).select('id').single();if(z.error)throw z.error;cid=z.data.id}let image=await image64($("photo").files[0]);let l=await sb.from('lessons').insert({classroom_id:cid,title,content,cover_photo:image,video_url:$("video").value.trim()}).select('id').single();if(l.error)throw l.error;if(quizItems.length){let rows=quizItems.map(q=>({lesson_id:l.data.id,question:q.q,option_a:q.a,option_b:q.b,option_c:q.c,option_d:q.d,correct_answer:q.ans}));let q=await sb.from('quizzes').insert(rows);if(q.error)throw q.error}alert('Matagumpay na na-post ang aralin!');teacher()}catch(e){note('Hindi na-save: '+e.message,true)}}
+async function teacher(){document.querySelector('.container').innerHTML=`<div class="card"><div class="row" style="justify-content:space-between"><h2>Guro Dashboard</h2><button class="cancel" onclick="home()">Logout</button></div><button class="publish" onclick="addLesson()">+ Magdagdag ng Aralin</button><div id="lessons" style="margin-top:14px">Naglo-load...</div></div>`;let r=await sb.from('lessons').select('*').order('created_at',{ascending:false});if(r.error)return $("lessons").innerHTML=note(r.error.message,true);$("lessons").innerHTML=r.data.length?r.data.map(l=>`<div class="lesson"><h3>${esc(l.title)}</h3><p>${esc(l.content)}</p><button class="remove" onclick="deleteLesson('${l.id}')">Tanggalin</button></div>`).join(''):'<div class="small">Wala pang nai-post na aralin.</div>'}
+async function deleteLesson(id){if(!confirm('Tanggalin ang aralin?'))return;let r=await sb.from('lessons').delete().eq('id',id);if(r.error)alert(r.error.message);else teacher()}
+async function student(){let code=sessionStorage.code;document.querySelector('.container').innerHTML=`<div class="card"><div class="row" style="justify-content:space-between"><h2>Mga Aralin</h2><button class="cancel" onclick="home()">Logout</button></div><p class="small">Section: ${esc(code)}</p><div id="lessons">Naglo-load...</div></div>`;let c=await sb.from('classrooms').select('id').eq('join_code',code).maybeSingle();if(c.error)return $("lessons").textContent=c.error.message;if(!c.data)return $("lessons").textContent='Wala pang classroom para sa join code na ito.';let r=await sb.from('lessons').select('*').eq('classroom_id',c.data.id).order('created_at',{ascending:false});if(r.error)return $("lessons").textContent=r.error.message;$("lessons").innerHTML=r.data.length?r.data.map(l=>`<div class="lesson"><h3>${esc(l.title)}</h3>${l.cover_photo?`<img src="${l.cover_photo}">`:''}<p>${esc(l.content)}</p>${l.video_url?`<p><a href="${esc(l.video_url)}" target="_blank">Buksan ang video</a></p>`:''}<button class="publish" onclick="takeQuiz('${l.id}')">Quiz</button></div>`).join(''):'Wala pang aralin.'}
+async function takeQuiz(id){let l=await sb.from('lessons').select('title').eq('id',id).single(),q=await sb.from('quizzes').select('*').eq('lesson_id',id).order('created_at');if(l.error||q.error)return alert((l.error||q.error).message);window.activeQuiz=q.data;document.querySelector('.container').innerHTML=`<div class="card"><h2>${esc(l.data.title)} — Quiz</h2>${q.data.length?q.data.map((x,i)=>`<div class="quiz-q"><b>${i+1}. ${esc(x.question)}</b>${['a','b','c','d'].map((k,j)=>`<label class="option"><input type="radio" name="q${i}" value="${'ABCD'[j]}"> ${'ABCD'[j]}. ${esc(x['option_'+k])}</label>`).join('')}</div>`).join(''):'Wala pang quiz.'}<div class="actions"><button class="publish" onclick="submitQuiz('${id}')">Submit Quiz</button><button class="cancel" onclick="student()">Bumalik</button></div></div>`}
+async function submitQuiz(id){let a=window.activeQuiz||[],score=0;a.forEach((q,i)=>{let x=document.querySelector(`input[name=q${i}]:checked`);if(x&&x.value===q.correct_answer)score++});let r=await sb.from('scores').insert({student_name:sessionStorage.name,lesson_id:id,score,total_items:a.length});if(r.error)return alert(r.error.message);alert(`Score: ${score}/${a.length}`);student()}
+home();
+</script>
+</body>
+</html>
